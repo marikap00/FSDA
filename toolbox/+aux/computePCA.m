@@ -35,6 +35,10 @@ sigmas=sqrt(diag(R));
 [~,Gamma,V]=svd(Zbsb,'econ');
 Gamma=Gamma/sqrt(nbsb-1);
 
+if all(V(:,1)<0)
+    V(:,1) = -V(:,1); % Flip the sign of the first principal component if necessary
+end
+
 % \Gamma*\Gamma = Matrix of eigenvalues of the correlation (covariance) matrix
 La=Gamma.^2;
 la=diag(La);
