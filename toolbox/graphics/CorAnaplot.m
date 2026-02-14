@@ -1,11 +1,11 @@
 function CorAnaplot(out,varargin)
-%CorAnaplot draws the Correspondence Analysis (CA) graphs with confidence ellipses.
+%CorAnaplot draws customized Correspondence Analysis (CA) graphs 
 %
-% The typical graphic in a correspondence analysis is to visualize the data
-% in a two dimensional space using the first two extracted coordinates from
-% both rows and columns. Although we could visualize the rows and the
-% columns separately, the usual approach is to plot both in a single
-% graphic to get an idea of the association between them.
+% With this function it is possible to add  to row and/or column points,
+% confidence ellipses, colorbar which is associated with a particular
+% statistics (e.g. contribution of the dimensions to the explanation of the
+% inertia of the points), personalized the coordinates, change sign and
+% customize plot appearance.
 %
 %<a href="matlab: docsearchFS('CorAnaplot')">Link to the help function</a>
 %
@@ -272,6 +272,17 @@ function CorAnaplot(out,varargin)
 %                   (communalities). The default is
 %                   plots.ColorMapLabelCols='' that is column labels have the
 %                   same colors.
+%              plots.ColorMap = type of colormap to use in
+%                   plots.ColorMapLabelRows plots.ColorMapLabelCols.
+%                   Colormap is specified as a colormap name, a
+%                   three-column matrix of RGB triplets, or 'default'. A
+%                   colormap name specifies a predefined colormap with the
+%                   same number of colors as the current colormap. A
+%                   three-column matrix of RGB triplets specifies a custom
+%                   colormap. You can create the matrix yourself, or you
+%                   can call one of the predefined colormap functions to
+%                   create the matrix. The default is to use
+%                   the colormap "cool".
 %              plots.ColorRowsSup= character which specifies the symbol to
 %                   use for row points or RGB triplet. If this field is not
 %                   present the default color is 'b'.
@@ -914,6 +925,22 @@ function CorAnaplot(out,varargin)
     CorAnaplot(out,'plots',plots)
 %}
 
+%{
+    %% An example with personalized colormap in option plots.
+    load housetasks.mat
+    out=CorAna(housetasks,'plots',0);
+    % Show a colorbar which is proportional to the contribution of the first
+    % two latent dimensions to the inertia of each
+    % Use colorbar abyss in a reverse order, that is in such a way that
+    % the darkest blue colors are associated with points with high communalities
+    plots=struct;
+    plots.ColorMapLabelRows= 'CntrbDim2In';
+    plots.ColorMap=flipud(abyss);
+    CorAnaplot(out,'plots',plots)
+    % From the plot it is clear that the RowPoint "Official" has an inertia which
+    % is not explained by the first two latent dimensions.
+    disp(out.OverviewRows(:,["CntrbDim2In_1" "CntrbDim2In_2"])) 
+%}
 
 %% Beginning of code
 
@@ -1015,7 +1042,7 @@ if ~isempty(LrSup)
     RowsStaSup=out.RowsStaSup;
     RowsPriSup=out.RowsPriSup;
     RowsSymSup=out.RowsSymSup;
-    
+
     for i=1:length(changedimsign)
         if changedimsign(i) == true
             RowsStaSup(:,dim(i))=-RowsStaSup(:,dim(i));
@@ -1030,7 +1057,7 @@ if ~isempty(LcSup)
     ColsStaSup=out.ColsStaSup;
     ColsPriSup=out.ColsPriSup;
     ColsSymSup=out.ColsSymSup;
-    
+
     for i=1:length(changedimsign)
         if changedimsign(i) == true
             ColsStaSup(:,dim(i))=-ColsStaSup(:,dim(i));
@@ -1038,7 +1065,7 @@ if ~isempty(LcSup)
             ColsSymSup(:,dim(i))=-ColsSymSup(:,dim(i));
         end
     end
-    
+
     SupColsN=out.SupColsN;
 end
 
@@ -1062,16 +1089,17 @@ if isstruct(plots)
     plotsdef.MarkerFaceColorColsSup='r';
     plotsdef.ColorMapLabelRows='';
     plotsdef.ColorMapLabelCols='';
-    
+    plotsdef.ColorMap='';
+
     fld=fieldnames(plots);
-    
+
     % Check if user options inside plots are valid options
     aux.chkoptions(plotsdef,fld)
-    
-    % This anonymous function anables to extract the variable name to a
+
+    % This anonymous function enables to extract the variable name to a
     % string
     ExtractVariableName=@(x) inputname(1);
-    
+
     if isfield(plots,'alpha')
         if strcmp(plots.alpha,'rowprincipal')
             typeR='RowsPri'; % rows are in principal coordinates
@@ -1080,7 +1108,7 @@ if isstruct(plots)
                 '$\alpha=1$, $X=D_r^{-1/2}U\Gamma$ and $Y= D_c^{-1/2} V$'};
             typeRSup='RowsPriSup';
             typeCSup='ColsStaSup';
-            
+
         elseif strcmp(plots.alpha,'colprincipal')
             typeR='RowsSta'; % rows are in standard coordinates
             typeC='ColsPri'; % columns are in principal coordinates
@@ -1088,8 +1116,8 @@ if isstruct(plots)
                 '$\alpha=0$, $X=D_r^{-1/2}U $ and $G= D_c^{-1/2} V \Gamma$'};
             typeRSup='RowsStaSup';
             typeCSup='ColsPriSup';
-            
-            
+
+
         elseif strcmp(plots.alpha,'symbiplot')
             % equivalent to alpha=0.5
             typeR='RowsSym';        % rows are in symmetrical coordinates
@@ -1097,8 +1125,8 @@ if isstruct(plots)
             titl='Biplot symmetrical model $\alpha=0.5$ $X=D_r^{-1/2}U\Gamma^{1/2} $ and $Y= D_c^{-1/2} V \Gamma {1/2}$';
             typeRSup='RowsSymSup';
             typeCSup='ColsSymSup';
-            
-            
+
+
         elseif strcmp(plots.alpha,'bothprincipal')
             typeR='RowsPri';        % rows are in principal coordinates
             typeC='ColsPri';        % columns are in principal coordinates
@@ -1106,7 +1134,7 @@ if isstruct(plots)
                 'Plot of $X=D_r^{-1/2}U \Gamma$ and $Y= D_c^{-1/2} V \Gamma$'};
             typeRSup='RowsPriSup';
             typeCSup='ColsPriSup';
-            
+
         elseif strcmp(plots.alpha,'bothstandard')
             typeR='RowsSta';        % rows are in standard coordinates
             typeC='ColsSta';        % columns are in standard coordinates
@@ -1114,7 +1142,7 @@ if isstruct(plots)
                 '$\alpha=0$, $X=D_r^{-1/2}U $ and $G= D_c^{-1/2} V$'};
             typeRSup='RowsStaSup';
             typeCSup='ColsStaSup';
-            
+
         elseif strcmp(plots.alpha,'rowgab')
             %  If plots.alpha='rowgab'  rows are in principal coordinates
             %  and columns are in standard coordinates multiplied by the
@@ -1125,13 +1153,13 @@ if isstruct(plots)
             titl={'Rows principal coordinates, and columns standard coordinates times masses' , ...
                 '$X=D_r^{-1/2}U\Gamma $ and $Y= D_c^{1/2} V$'};
             typeRSup='RowsPriSup';
-            
+
             if ~isempty(LcSup)
                 ColsStaDcSup=diag(sum(SupColsN,1)/n)*ColsStaSup;
                 typeCSup=ExtractVariableName(ColsStaDcSup);
             end
-            
-            
+
+
         elseif strcmp(plots.alpha,'colgab')
             % If plots.alpha='colgab'  columns are in principal coordinates
             % and rows are in standard coordinates multiplied by the
@@ -1141,13 +1169,13 @@ if isstruct(plots)
             typeC='ColsPri';        % columns are in principal coordinates
             titl={'Rows standard coordinates multiplied by masses ' , ...
                 'and columns principal coordinates $X=D_r^{1/2} U$ and $Y= D_c^{-1/2} V \Gamma$'};
-            
+
             if ~isempty(LrSup)
                 RowsStaDrSup=diag(sum(SupRowsN,2)/n)*RowsStaSup;
                 typeRSup=ExtractVariableName(RowsStaDrSup);
             end
             typeCSup='ColsPriSup';
-            
+
         elseif strcmp(plots.alpha,'rowgreen')
             %  If plots.alpha='rowgreen'  rows are in principal
             %  coordinates and columns are in standard coordinates
@@ -1158,12 +1186,12 @@ if isstruct(plots)
             titl={'Rows principal coordinates, and column standard coordinates ' , ...
                 'times sqrt of masses $X=D_r^{-1/2}U\Gamma $ and $Y= V$'};
             typeRSup='RowsPriSup';        % rows are in principal coordinates
-            
+
             if ~isempty(LcSup)
                 ColsStaDcSqrtSup=(diag(sum(SupColsN,1)/n))^(1/2)*ColsStaSup;
                 typeCSup= ExtractVariableName(ColsStaDcSqrtSup);
             end
-            
+
         elseif strcmp(plots.alpha,'colgreen')
             %  If plots.alpha='colgreen' columns in principal coordinates
             %  and rows in standard coordinates multiplied by the square
@@ -1207,7 +1235,7 @@ if isstruct(plots)
                 error('FSDA:CorAnaplot:WrongInputOpt','Please use one of the above strings')
             end
         end
-        
+
     else
         typeR='RowsPri';        % rows are in principal coordinates
         typeC='ColsPri';        % columns are in principal coordinates
@@ -1216,7 +1244,7 @@ if isstruct(plots)
         typeRSup='RowsPriSup';
         typeCSup='ColsPriSup';
     end
-    
+
     if isfield(plots,'FontSize')
         FontSize=plots.FontSize;
     else
@@ -1227,8 +1255,8 @@ if isstruct(plots)
     else
         FontSizeSup=FontSizedef;
     end
-    
-    
+
+
     if isfield(plots,'MarkerSize')
         MarkerSize=plots.MarkerSize;
     else
@@ -1239,49 +1267,49 @@ if isstruct(plots)
     else
         SymbolRows='o';
     end
-    
+
     if isfield(plots,'SymbolRowsSup')
         SymbolRowsSup=plots.SymbolRowsSup;
     else
         SymbolRowsSup='o';
     end
-    
+
     if isfield(plots,'SymbolCols')
         SymbolCols=plots.SymbolCols;
     else
         SymbolCols='^';
     end
-    
+
     if isfield(plots,'SymbolColsSup')
         SymbolColsSup=plots.SymbolColsSup;
     else
         SymbolColsSup='^';
     end
-    
+
     if isfield(plots,'ColorRows')
         ColorRows=plots.ColorRows;
     else
         ColorRows='b';
     end
-    
+
     if isfield(plots,'ColorRowsSup')
         ColorRowsSup=plots.ColorRowsSup;
     else
         ColorRowsSup='b';
     end
-    
+
     if isfield(plots,'MarkerFaceColorRows')
         MarkerFaceColorRows=plots.MarkerFaceColorRows;
     else
         MarkerFaceColorRows='auto';
     end
-    
+
     if isfield(plots,'MarkerFaceColorRowsSup')
         MarkerFaceColorRowsSup=plots.MarkerFaceColorRowsSup;
     else
         MarkerFaceColorRowsSup=ColorRowsSup;
     end
-    
+
     if isfield(plots,'ColorCols')
         ColorCols=plots.ColorCols;
     else
@@ -1292,29 +1320,35 @@ if isstruct(plots)
     else
         ColorColsSup='r';
     end
-    
+
     if isfield(plots,'MarkerFaceColorCols')
         MarkerFaceColorCols=plots.MarkerFaceColorCols;
     else
         MarkerFaceColorCols='auto';
     end
-    
+
     if isfield(plots,'MarkerFaceColorColsSup')
         MarkerFaceColorColsSup=plots.MarkerFaceColorColsSup;
     else
         MarkerFaceColorColsSup=ColorColsSup;
     end
-    
+
     if isfield(plots,'ColorMapLabelRows')
         ColorMapLabelRows=plots.ColorMapLabelRows;
     else
         ColorMapLabelRows='';
     end
-    
+
     if isfield(plots,'ColorMapLabelCols')
         ColorMapLabelCols=plots.ColorMapLabelCols;
     else
         ColorMapLabelCols='';
+    end
+
+     if isfield(plots,'ColorMap')
+        ColorMapType=plots.ColorMap;
+    else
+        ColorMapType='';
     end
 else
     typeR='RowsPri';        % rows are in principal coordinates
@@ -1350,6 +1384,8 @@ else
     ColorMapLabelRows='';
     % Colormap for text labels of the column labels
     ColorMapLabelCols='';
+    % Type of Colormap to use
+    ColorMapType='';
 end
 
 Carows= eval(typeR);
@@ -1357,25 +1393,34 @@ Cacols= eval(typeC);
 
 % Create the figure that will host the CorAnaplot
 if isempty(h)
+
     hfig = figure('Name', 'Correspondence analysis plot', 'NumberTitle', 'off',...
         'Tag','pl_CorAna');
+    tl = tiledlayout;
+    % nexttile;
+    axTiledLayout = axes(tl,'visible','off');
+    addcb=false;
 else
     % Note that if the figure has to be sent to h axes it is convenient to
     % set the figure in the current axes with Visible off
     hfig = figure('Name', 'Correspondence analysis plot', 'NumberTitle', 'off',...
-        'Tag','pl_CorAna','Visible','off');
+        'Tag','pl_CorAna','Visible','on');
+    % axTiledLayout = axes('Parent',hfig);
+    addcb=true;
 end
 % Get figure's axis
-afig = axes('Parent',hfig);
+ afig = axes('Parent',hfig);
+
+% afig = axes(tl);
 
 hold('on')
 % Plot row points
 plot(afig,Carows(:,d1),Carows(:,d2),'LineStyle','none','Marker',SymbolRows ,'Color', ColorRows , ...
-    'MarkerSize',MarkerSize,'MarkerFaceColor', MarkerFaceColorRows)
+    'MarkerSize',MarkerSize,'MarkerFaceColor', MarkerFaceColorRows);
 
 % Plot column points
 plot(afig,Cacols(:,d1),Cacols(:,d2),'LineStyle','none','Marker',SymbolCols ,'Color', ColorCols , ...
-    'MarkerSize',MarkerSize,'MarkerFaceColor', MarkerFaceColorCols)
+    'MarkerSize',MarkerSize,'MarkerFaceColor', MarkerFaceColorCols);
 
 % Add labels for row points and column points
 % addx = adds a small horizontal displacement for labels
@@ -1394,13 +1439,20 @@ if ~isempty(ColorMapLabelRows) && ~isempty(ColorMapLabelCols)
         'colormap just for row labels or column labels but not for both.']);
 end
 
-% Plot labels associated with Row Points with or without colorbar
+% Retrieve the requested colormap
+ if isempty(ColorMapType)
+    map=colormap(cool);
+    else
+    map=colormap(ColorMapType);
+ end
+
+
+
+% ROW POINTS: plot labels associated with Row Points with or without colorbar
 if isempty(ColorMapLabelRows)
     text(Carows(:,d1)+addx , Carows(:,d2)+addy, Lr,'Interpreter','None','FontSize',FontSize,'Color', ColorRows )
 else
-    % map=colormap(copper);
-    map=colormap(cool);
-    % map=flipud(map);
+  
     if iscell(ColorMapLabelRows)
         ColorMapLabelRows=ColorMapLabelRows{:};
     end
@@ -1409,13 +1461,13 @@ else
         disp('--------------------------------')
         disp('The colormap of the row labels is proportional to the contribution')
         disp('of the two latent dimensions to the inertia of each point (communalities)')
-        
+
     elseif strcmp(ColorMapLabelRows,'CntrbPnt2In')
         dist=out.OverviewRows.CntrbPnt2In_1+out.OverviewRows.CntrbPnt2In_2;
         disp('--------------------------------')
         disp('The colormap of the row labels is proportional to the contribution')
         disp('of the row points to the inertia of the two latent dimensions')
-        
+
     elseif  ismember(ColorMapLabelRows,out.OverviewRows.Properties.VariableNames)
         dist=out.OverviewRows.(ColorMapLabelRows);
         disp('--------------------------------')
@@ -1429,35 +1481,38 @@ else
     dist1=(dist-mindist)/(maxdist-mindist);
     rowmap=ceil(dist1*size(map,1));
     rowmap(rowmap==0)=1;
-    
+
     for i=1:out.I
         text(Carows(i,d1)+addx, Carows(i,d2)+addy,Lr(i),'Interpreter','None', ...
-            'FontSize',FontSize,'Color', map(rowmap(i),:))
+            'FontSize',FontSize,'Color', map(rowmap(i),:),'FontWeight','bold')
     end
-    
-    % A colorbar is added
-    colorbar
-    % Control the labels of the colorbar
+
+    % Add a personalized the colorbar
     mindist1=min(dist1);
     maxdist1=max(dist1);
     seqdist=mindist1:((maxdist1-mindist1)/5):maxdist1;
     seqdistlabel=mindist:((maxdist-mindist)/5):maxdist;
     colorlab=(num2str(seqdistlabel',3));
-    hcolbarRows=colorbar(afig,'Ticks',seqdist,'TickLabels',colorlab);
+
+    if addcb==true
+        hcolbarRows=colorbar(afig,'Ticks',seqdist,'TickLabels',colorlab);
+    else
+        hcolbarRows=colorbar(axTiledLayout,'Ticks',seqdist,'TickLabels',colorlab);
+    end
+
     hcolbarRows.Label.String=['Colorbar of row labels is proportional to ' ColorMapLabelRows];
+
+    ax=gca;
+    ax.Color = 'none';
 end
 
 
-% Plot labels associated with Column Points with or without colorbar
+% COL POINTS: Plot labels associated with Column Points with or without colorbar
 if isempty(ColorMapLabelCols)
     text(Cacols(:,d1)+addx , Cacols(:,d2)+addy, Lc,'Interpreter','None','FontSize',FontSize,'Color', ColorCols )
 else
-    
-    % map=colormap(copper);
-    map=colormap("autumn");
-    % Removed the first yellows because too faint
-    map=map(1:end-60,:);
-    if iscell(ColorMapLabelCols)
+
+     if iscell(ColorMapLabelCols)
         ColorMapLabelCols=ColorMapLabelCols{:};
     end
     if strcmp(ColorMapLabelCols,'CntrbDim2In')
@@ -1465,13 +1520,13 @@ else
         disp('--------------------------------')
         disp('The colormap of the column labels is proportional to the contribution')
         disp('of the two latent dimensions to the inertia of each point (communalities)')
-        
+
     elseif strcmp(ColorMapLabelCols,'CntrbPnt2In')
         dist=out.OverviewCols.CntrbPnt2In_1+out.OverviewCols.CntrbPnt2In_2;
         disp('--------------------------------')
         disp('The colormap of the column labels is proportional to the contribution')
         disp('of the column points to the inertia of the two latent dimensions')
-        
+
     elseif  ismember(ColorMapLabelCols,out.OverviewCols.Properties.VariableNames)
         dist=out.OverviewCols.(ColorMapLabelCols);
         disp('--------------------------------')
@@ -1486,22 +1541,31 @@ else
     ncmap=size(map,1);
     rowmap=ceil(dist1*ncmap);
     rowmap(rowmap==ncmap)=ncmap-1;
+    rowmap(rowmap==0)=1;
     for j=1:out.J
         text(Cacols(j,d1)+addx, Cacols(j,d2)+addy,Lc(j),'Interpreter','None', ...
-            'FontSize',FontSize,'Color', map(ncmap-rowmap(j),:))
+            'FontSize',FontSize,'Color', map(rowmap(j),:),'FontWeight','bold')
     end
-    
-    % A colorbar is added
-    colorbar % ('Position',[0.81 0.1 0.05 0.815]);
-    % Control the labels of the colorbar
+
+   % Add a personalized the colorbar
     mindist1=min(dist1);
     maxdist1=max(dist1);
     seqdist=mindist1:((maxdist1-mindist1)/5):maxdist1;
     seqdistlabel=mindist:((maxdist-mindist)/5):maxdist;
     colorlab=(num2str(seqdistlabel',3));
-    hcolbarCols=colorbar('Ticks',seqdist,'TickLabels',flip(colorlab));
+    % hcolbarCols=colorbar('Ticks',seqdist,'TickLabels',flip(colorlab));
+
+    if addcb==true
+        hcolbarCols=colorbar(afig,'Ticks',seqdist,'TickLabels',colorlab);
+    else
+        hcolbarCols=colorbar(axTiledLayout,'Ticks',seqdist,'TickLabels',colorlab);
+    end
+
     hcolbarCols.Label.String=['Colorbar of column labels is proportional to ' ColorMapLabelCols];
-    hcolbarCols.Direction='reverse';
+    % hcolbarCols.Direction='reverse';
+
+    ax=gca;
+    ax.Color = 'none';
 end
 
 
@@ -1509,18 +1573,18 @@ end
 % Add points and text associated to supplementary rows
 if ~isempty(LrSup)
     CarowsSup= eval(typeRSup);
-    
+
     %         % All supplementary units are new
     %     indexesLrSupNew=1:length(LrSup);
     %     fracLrSupBoth=1;
     %     % No supplementary unit has already been included in the active rows
     %     indexesLrSupBoth=[];
-    
-    
+
+
     plot(afig,CarowsSup(indexesLrSupNew,d1),CarowsSup(indexesLrSupNew,d2),'LineStyle','none','Marker',SymbolRowsSup ,...
         'Color', ColorRowsSup , 'MarkerFaceColor', MarkerFaceColorRowsSup,'MarkerSize',MarkerSize)
     text(CarowsSup(indexesLrSupNew,d1)+addx , CarowsSup(indexesLrSupNew,d2)+addy, LrSup(indexesLrSupNew),'Interpreter','None','FontSize',FontSizeSup,'Color', ColorRowsSup )
-    
+
     for ii=1:length(indexesLrSupBoth)
         plot(afig,CarowsSup(indexesLrSupBoth(ii),d1),CarowsSup(indexesLrSupBoth(ii),d2),'LineStyle','none','Marker',SymbolRowsSup ,...
             'Color', ColorRowsSup , 'LineWidth',1,'MarkerFaceColor', MarkerFaceColorRowsSup,'MarkerSize',MarkerSize*fracLrSupBoth(ii))
@@ -1558,7 +1622,7 @@ seq1J=1:J;
 
 confellipse=options.confellipse;
 if isstruct(confellipse) || confellipse ==1
-    
+
     if isstruct(confellipse)
         confellipsedef = struct;
         confellipsedef.conflev=0.90;
@@ -1567,12 +1631,12 @@ if isstruct(confellipse) || confellipse ==1
         confellipsedef.selRows=seq1I;
         confellipsedef.selCols=seq1J;
         confellipsedef.AxesEllipse=true;
-        
+
         fld=fieldnames(confellipse);
-        
+
         % Check if user options inside plots are valid options
         aux.chkoptions(confellipsedef,fld)
-        
+
         % confellipse.nsimul=scalar which defines the number of
         % contingency tables which have to ge generated.
         if isfield(confellipse,'nsimul')
@@ -1580,7 +1644,7 @@ if isstruct(confellipse) || confellipse ==1
         else
             nsimul=1000;
         end
-        
+
         % confellipse.method= cell which specifies the method which is used to
         % compute confidence ellipses.
         if isfield(confellipse,'method')
@@ -1592,7 +1656,7 @@ if isstruct(confellipse) || confellipse ==1
         else
             method={'multinomial'};
         end
-        
+
         % confellipse.conflev= number in the interval (0 1) which
         % defines the confidence level of each ellipse.
         if isfield(confellipse,'conflev')
@@ -1600,14 +1664,14 @@ if isstruct(confellipse) || confellipse ==1
         else
             conflev=0.90;
         end
-        
+
         % Find if it is necessary to shows the major axes of the ellipses
         if isfield(confellipse,'AxesEllipse')
             AxesEllipse= confellipse.AxesEllipse;
         else
             AxesEllipse=true;
         end
-        
+
         % Find the rows and columns for which ellipses are requested
         if isfield(confellipse,'selRows')
             selRows=confellipse.selRows;
@@ -1626,7 +1690,7 @@ if isstruct(confellipse) || confellipse ==1
         else
             selRows=seq1I;
         end
-        
+
         if isfield(confellipse,'selCols')
             selCols=confellipse.selCols;
             if iscell(selCols)
@@ -1644,7 +1708,7 @@ if isstruct(confellipse) || confellipse ==1
         else
             selCols=seq1J;
         end
-        
+
     else
         conflev=0.90;
         method={'multinomial'};
@@ -1653,7 +1717,7 @@ if isstruct(confellipse) || confellipse ==1
         selCols=seq1J;
         AxesEllipse=true;
     end
-    
+
     % Compute matrices Arows and Acols
     % Arows = [ A_1
     %           A_2
@@ -1663,10 +1727,10 @@ if isstruct(confellipse) || confellipse ==1
     % where matrix A_r, r=1, 2, ..., nsimul is the I-by-J matrix which is
     % associated to the r-th simulated replicate of the original
     % contingency table
-    
+
     otherR=127;
     otherC=110;
-    
+
     s = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
     numRands = length(s);
     %specify length of random string to generate
@@ -1676,7 +1740,7 @@ if isstruct(confellipse) || confellipse ==1
     randString=cellstr(randString);
     Lrsup=randString(1:nsimul*I);
     Lcsup=randString(1:nsimul*J);
-    
+
     % Old inefficient code to generate labels for supplementary rows and
     % supplementary columns
     %         % default labels for rows of contingency table
@@ -1685,21 +1749,21 @@ if isstruct(confellipse) || confellipse ==1
     %     Lcsup=cellstr(strcat('csup',num2str((1:nsimul*J)')));
     %     Lrsup=strrep(Lrsup,' ','');
     %     Lcsup=strrep(Lcsup,' ','');
-    
+
     % Find method to use to draw the confidence ellipses
     % methodcount is a counter which counts the number of requested methods
     % for which a matching has been found
     methodcount=0;
     legall=cell(3,2);
     selmethods=false(3,2);
-    
+
     if max(strcmp(method,{'multinomial'})) ==1
         methodcount=methodcount+1;
         A=mnrnd(n,Narray(:)/n,nsimul);
         % The sum of each row of matrix A is n (total number of observations)
         Atransp=A';
         Acols=reshape(Atransp,I,J*nsimul);
-        
+
         % A1row=reshape(Atmp(:),nr*nrep,nc);
         % Reshape A' into a 3D array
         Atmp=reshape(Atransp,I,J,nsimul);
@@ -1708,11 +1772,11 @@ if isstruct(confellipse) || confellipse ==1
         Sup=struct;
         Sup.r=Arows;
         Sup.c=Acols;
-        
+
         Sup.Lr=Lrsup;
         Sup.Lc=Lcsup;
         outext=CorAna(Narray,'Sup',Sup,'plots',0,'dispresults',false);
-        
+
         if isstruct(plots) &&  isfield(plots,'alpha')
             if strcmp(plots.alpha,'rowgab')
                 %  If plots.alpha='rowgab'  rows are in principal coordinates
@@ -1721,18 +1785,18 @@ if isstruct(confellipse) || confellipse ==1
                 % typeR='RowsPri';        % rows are in principal coordinates
                 ColsStaDcSup=bsxfun(@times,(sum(Acols,1)/n)',outext.ColsStaSup);
                 outext.ColsStaDcSup=ColsStaDcSup;
-                
-                
+
+
             elseif strcmp(plots.alpha,'colgab')
                 % If plots.alpha='colgab'  columns are in principal coordinates
                 % and rows are in standard coordinates multiplied by the
                 % masses.
                 typeC='ColsPri';        % columns are in principal coordinates
-                
+
                 %RowsStaDrSup=diag(sum(Arows,2)/n)*outext.RowsStaSup;
                 RowsStaDrSup=bsxfun(@times,sum(Arows,2)/n,outext.RowsStaSup);
                 outext.RowsStaDrSup=RowsStaDrSup;
-                
+
             elseif strcmp(plots.alpha,'rowgreen')
                 %  If plots.alpha='rowgreen'  rows are in principal
                 %  coordinates and columns are in standard coordinates
@@ -1740,17 +1804,17 @@ if isstruct(confellipse) || confellipse ==1
                 typeR='RowsPri';        % rows are in principal coordinates
                 ColsStaDcSqrtSup=bsxfun(@times,((sum(Acols,1)/n)').^(1/2),outext.ColsStaSup);
                 outext.ColsStaDcSqrtSup=ColsStaDcSqrtSup;
-                
+
             elseif strcmp(plots.alpha,'colgreen')
                 %  If plots.alpha='colgreen' columns in principal coordinates
                 %  and rows in standard coordinates multiplied by the square
                 %  root of the mass.
                 % typeC='ColsPri';        % columns are in principal coordinates
-                
+
                 % RowsStaDrSqrtSup=sqrt(diag(sum(Arows,2)/n))*outext.RowsStaSup;
                 RowsStaDrSqrtSup=bsxfun(@times,sqrt(sum(Arows,2)/n),outext.RowsStaSup);
                 outext.RowsStaDrSqrtSup=RowsStaDrSqrtSup;
-                
+
             elseif isnumeric(plots.alpha) && plots.alpha>=0 && plots.alpha<=1
                 hm=bsxfun(@rdivide,Arows,sum(Arows,2));
                 outext.RowsAlphaSup=hm*outext.ColsSta *Gam^(plots.alpha-1);
@@ -1759,21 +1823,21 @@ if isstruct(confellipse) || confellipse ==1
             else
             end
         end
-        
+
         % Carowsext= eval(['outext.' typeR 'Sup']);
         % Cacolsext= eval(['outext.'  typeC 'Sup']);
-        
+
         Carowsext= outext.([typeR 'Sup']);
         Cacolsext= outext.([typeC 'Sup']);
-        
-        
+
+
         for i=1:length(changedimsign)
             if changedimsign(i) == true
                 Carowsext(:,dim(i))=-Carowsext(:,dim(i));
                 Cacolsext(:,dim(i))=-Cacolsext(:,dim(i));
             end
         end
-        
+
         hold('on')
         if ~isempty(selCols)
             for j=selCols
@@ -1786,21 +1850,21 @@ if isstruct(confellipse) || confellipse ==1
             legall{1,2}=hColsMultinomial;
             selmethods(1,2)=true;
         end
-        
+
         if ~isempty(selRows)
             for i=selRows
                 se=i:I:(I*(nsimul-1)+i);
                 EcoRows=Carowsext(se,dim);
                 me=mean(EcoRows,1,'omitnan');
                 co=cov(EcoRows,'partialrows');
-                
+
                 [~,hRowsMultinomial]=ellipse(me,co,conflev,[0 0 255]/255,AxesEllipse);
             end
             legall{1,1}=hRowsMultinomial;
             selmethods(1,1)=true;
         end
     end
-    
+
     % BOOTSTRAP METHOD bootRows
     if max(strcmp(method,{'bootRows'}))==1
         methodcount=methodcount+1;
@@ -1819,7 +1883,7 @@ if isstruct(confellipse) || confellipse ==1
             counts=counts(1:end-1,:);
             Acols(i,:)=(counts(:))';
         end
-        
+
         Atransp=reshape(Acols,I*J,nsimul);
         Atmp=reshape(Atransp,I,J,nsimul);
         Arows = permute(Atmp,[1 3 2]);
@@ -1827,25 +1891,25 @@ if isstruct(confellipse) || confellipse ==1
         Sup=struct;
         Sup.r=Arows;
         Sup.c=Acols;
-        
+
         Sup.Lr=Lrsup;
         Sup.Lc=Lcsup;
         outext=CorAna(Narray,'Sup',Sup,'plots',0,'dispresults',false);
-        
+
         % Carowsext= eval(['outext.' typeR 'Sup']);
         % Cacolsext= eval(['outext.'  typeC 'Sup']);
-        
+
         Carowsext= outext.([typeR 'Sup']);
         Cacolsext= outext.([typeC 'Sup']);
-        
-        
+
+
         for i=1:length(changedimsign)
             if changedimsign(i) == true
                 Carowsext(:,dim(i))=-Carowsext(:,dim(i));
                 Cacolsext(:,dim(i))=-Cacolsext(:,dim(i));
             end
         end
-        
+
         hold('on')
         if ~isempty(selCols)
             for j=selCols
@@ -1853,27 +1917,27 @@ if isstruct(confellipse) || confellipse ==1
                 EcoCols=Cacolsext(se,dim);
                 me=mean(EcoCols,1,'omitnan');
                 co=cov(EcoCols,'partialrows');
-                
+
                 [~,hColsBootRows]=ellipse(me,co,conflev,[255 otherC 0]/255,AxesEllipse);
             end
             legall{2,2}=hColsBootRows;
             selmethods(2,2)=true;
         end
-        
+
         if ~isempty(selRows)
             for i=selRows
                 se=i:I:(I*(nsimul-1)+i);
                 EcoRows=Carowsext(se,dim);
                 me=mean(EcoRows,1,'omitnan');
                 co=cov(EcoRows,'partialrows');
-                
+
                 [~,hRowsBootRows]=ellipse(me,co,conflev,[0 otherR 255]/255,AxesEllipse);
             end
             legall{2,1}=hRowsBootRows;
             selmethods(2,1)=true;
         end
     end
-    
+
     % BOOTSTRAP METHOD bootCols
     if max(strcmp(method,{'bootCols'})) ==1
         methodcount=methodcount+1;
@@ -1896,10 +1960,10 @@ if isstruct(confellipse) || confellipse ==1
         % sum(Arows(1:I,:),1) = sum(Narray,1)
         % sum(Arows(I+1:2*I,:),1) =  sum(Narray,1)
         % ...
-        
+
         % Now from Arows compute Acols
         Arowst=Arows';
-        
+
         % Create a 3D array with J rows I cols and nsimul replicates
         Acols=reshape(Arowst,J,I,nsimul);
         % For each slice of the 3D array compute the transpose
@@ -1910,29 +1974,29 @@ if isstruct(confellipse) || confellipse ==1
         % Note that
         %  Acols(1:14,1:J) = Arows(1:I,1:J)
         % Acols(1:14,J+1:2*J) = Arows(I+1:2*I,1:J)
-        
-        
+
+
         Sup=struct;
         Sup.r=Arows;
         Sup.c=Acols;
-        
+
         Sup.Lr =Lrsup;
         Sup.Lc=Lcsup;
         outext=CorAna(Narray,'Sup',Sup,'plots',0,'dispresults',false);
-        
+
         %         Carowsext= eval(['outext.' typeR 'Sup']);
         %         Cacolsext= eval(['outext.'  typeC 'Sup']);
-        
+
         Carowsext= outext.([typeR 'Sup']);
         Cacolsext= outext.([typeC 'Sup']);
-        
+
         for i=1:length(changedimsign)
             if changedimsign(i) == true
                 Carowsext(:,dim(i))=-Carowsext(:,dim(i));
                 Cacolsext(:,dim(i))=-Cacolsext(:,dim(i));
             end
         end
-        
+
         hold('on')
         if ~isempty(selCols)
             for j=selCols
@@ -1940,20 +2004,20 @@ if isstruct(confellipse) || confellipse ==1
                 EcoCols=Cacolsext(se,dim);
                 me=mean(EcoCols,1,'omitnan');
                 co=cov(EcoCols,'partialrows');
-                
+
                 [~,hColsBootCols]=ellipse(me,co,conflev,[255 2*otherC 0]/255,AxesEllipse);
             end
             legall{3,2}=hColsBootCols;
             selmethods(3,2)=true;
         end
-        
+
         if ~isempty(selRows)
             for i=selRows
                 se=i:I:(I*(nsimul-1)+i);
                 EcoRows=Carowsext(se,dim);
                 me=mean(EcoRows,1,'omitnan');
                 co=cov(EcoRows,'partialrows');
-                
+
                 [~,hRowsBootCols]=ellipse(me,co,conflev,[0 2*otherR 255]/255,AxesEllipse);
             end
             legall{3,1}=hRowsBootCols;
@@ -1964,7 +2028,7 @@ if isstruct(confellipse) || confellipse ==1
         'rows BootRows', 'cols BootRows';
         'rows BootCols' 'cols BootCols'};
     legallLEG=[legall{selmethods(:)}];
-    
+
     if verLessThanFS('9.2')==0
         % hColsMultinomial hColsBootRows hColsBootCols
         legend(legallLEG,...
@@ -1972,7 +2036,7 @@ if isstruct(confellipse) || confellipse ==1
     else
         legend(legallLEG,legstring(selmethods(:)))
     end
-    
+
     if methodcount ==0
         warning('FSDA:CorAnaplot:WrongInputOpt','Valid methods not found in input cell confellipse.method')
         disp('Methods supplied are')
@@ -1990,8 +2054,8 @@ if isstruct(confellipse) || confellipse ==1
         disp(method)
     else
     end
-    
-    
+
+
     % Supply supplementary rows and units using table format
     %     A1supcol=array2table(Acols);
     %     sup.c=A1supcol;
@@ -2012,19 +2076,31 @@ ylab=['Dimension ',sprintf('%2.0f',d2),' (',sprintf('%5.1f',InertiaExplained(d2,
 if ~isempty(h)
     % Eventually send the CorAnaplot into a different figure/subplot
     hfigh = get(h,'Parent');
-    
+
     set(hfigh,'Name','Correspondence analysis plot','NumberTitle','off');
     set(h,'Tag','pl_subplot');
-    
-    
+
+
     xlabel(h,xlab,'FontName', FontName, 'FontSize', FontSizeAxisLabels);
     ylabel(h,ylab,'FontName', FontName, 'FontSize', FontSizeAxisLabels);
     title(h,titl,'Interpreter','Latex');
-    copyobj(allchild(afig),h);
+
+
+    copyobj([allchild(afig)],h)
+    
+    if ~isempty(ColorMapLabelRows) || ~isempty(ColorMapLabelCols)
+        % Note that calorbar is not copied (not a child of afig)
+        colormap(h, colormap(afig));
+        hcolbar=colorbar(h,'Ticks',seqdist,'TickLabels',colorlab);
+        hcolbar.Label.String=['Colorbar of row labels is proportional to ' ColorMapLabelRows];
+     end
+
+    drawnow
     pause(0.000001);
-    
+
+
     % Make axes equal and add cartesian axes
-    
+
     axis(h,'equal')
     xline(h,0); yline(h,0);
     delete(hfig);
@@ -2032,7 +2108,7 @@ else
     xlabel(xlab,'FontName', FontName, 'FontSize', FontSizeAxisLabels);
     ylabel(ylab,'FontName', FontName, 'FontSize', FontSizeAxisLabels);
     % Make axes equal and add cartesian axes
-    axis(gca,'equal')
+    % axis(gca,'equal')
     xline(0); yline(0)
     title(titl,'Interpreter','Latex');
 end
