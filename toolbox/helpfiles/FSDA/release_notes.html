@@ -117,13 +117,33 @@ document.write(divsbefore);</script>
 			DATA<br>In the biplot of PCA new knob control has been added to 
 			control the percentage of text labels which have to be displayed 
 			inside the biplot<br><br>GRAPHICS<br>New function dumbbellplot 
-			(testing phase, written by Giacomo Boschi)<br>
+			(testing phase, written by Giacomo Boschi)<br><br>
+			Improved option plots in 
+			<a href="http://rosa.unipr.it/FSDA/CorAnaplot.html">CorAnaplot</a>. Now it is possible to specify the type of colormap 
+			when the color of the labels in the correspondence 
+			analysis plots depends on some statistics (e.g. masses, contribution of the points to the inertia 
+			or contribution of the latent dimensions to the inertia of the points).
+			
+			See the documentation of CorAnaplot for additional details and the examples.
+			
 			<br><br>DISTRIBUTIONS<br>New functions  mWNChygeodds and mFNChygeodds 
 			to compute the odds given the means<br><br>UTILITIES<br>In function 
 			tuna hypertextual link has been added to automatically distinstall a 
-			toolbox version.<br></td>
+			toolbox version.<br><br>AUTOCOMPLETION<br>Function autocompletion 
+			has been added to functions biplotFS, spmplot, improved 
+			autocompletion in pcaFS (autocompletions hves been written by
+			<a href="https://github.com/BoschiGiacomo">Giacomo Boschi</a> and
+			<a href="https://github.com/NourTerryS">NourTerryS</a>), <br></td>
 			<td class="auto-style1" style="vertical-align: top; height: 669px; width: 14%;">
-			March 2026</td>
+			March 2026<br><br>Now the label of the points in the 
+			correspondence analysis plot correctly appear in front and not 
+			behind the colorbar.<br><br>Functions
+			<a href="http://rosa.unipr.it/FSDA/yXplot.html">yXplot</a> and
+			<a href="http://rosa.unipr.it/FSDA/mdpattern.html">mdpattern</a> now 
+			also work when in the table there are variables which are 
+			categorical.<br><br>Function publishFS does not work anymore in 
+			prereleases 2026a because Java is not supported anymore. The fix is 
+			not available yet.</td>
 		</tr>
 		<tr>
 			<td style="vertical-align: top; height: 669px; width: 61px;">8.7.9.9 
@@ -236,7 +256,8 @@ Toolbox FSDA is up-to-date.
 			<p></p>In order to be able to see the labels of the units inside pcaProjection 
 			you need to have the Text analytic toolbox.
 		
-		</td>
+		<br><br>Inside CorAnaplot when a colorbar is added the&nbsp; labels of 
+			the points appear behind the colorbar.</td>
 		</tr>
 		<tr>
 			<td style="vertical-align: top; height: 669px; width: 61px;">
