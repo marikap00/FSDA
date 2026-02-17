@@ -30,11 +30,7 @@ y(1:20)=y(1:20)+13;
 % The procedure of resuperimposing envelopes in this case stops when
 % n = 85, the first time in which we have a value of rmin(m) for
 % $n&gt;=m^\dagger-1$ greater than the 99% threshold. The group can,
-% therefore, be considered as homogeneous up to when we include 84 units.</pre></div></div><pre class="codeoutput">Warning: Using 'state' to set RANDN's internal state causes RAND, RANDI, and
-RANDN to use legacy random number generators.  This syntax is not recommended.
-See &lt;a href="matlab:helpview([docroot '\techdoc\math\math.map'],'update_random_number_generator')"&gt;Replace Discouraged Syntaxes of rand and randn&lt;/a&gt; to use RNG to replace the old
-syntax. 
--------------------------
+% therefore, be considered as homogeneous up to when we include 84 units.</pre></div></div><pre class="codeoutput">-------------------------
 Signal detection loop
 Tentative signal in central part of the search: step m=81 because
 rmin(81,100)&gt;99.999%
@@ -54,7 +50,8 @@ Summary of the exceedances
            1          99         999        9999       99999
            0          17          10           9           6
 
-</pre><a href='http://rosa.unipr.it/fsda/FSR.html#Example_2'><img vspace="5" hspace="5" src="images\FSR_01.png" alt="Click here for the graphical output of this example (link to Ro.S.A. website)."> <img vspace="5" hspace="5" src="images\FSR_02.png" alt=""> <img vspace="5" hspace="5" src="images\FSR_03.png" alt=""> <img vspace="5" hspace="5" src="images\FSR_04.png" alt=""> </a></p></div></div></div><p> </p><div class="examples"><h2 id="ExtraExamples" class="bottom_ruled">Related Examples</h2><div id="expandableExamples" class="expandableContent"><p class="switch"><a class="expandAllLink"href="javascript:void(0);">expand all</a></p><div id="Extraexample_1" class="example_module expandableContent"><div id="ExtraExample_1"></div><h3 class="expand"><span><a href="javascript:void(0);" style="display: block;" title="Expand/Collapse"><span class="example_title"><li>FSR with optional arguments.</li></span></a></span></h3><div class="collapse"><p>
+</pre>
+            <a href='http://rosa.unipr.it/fsda/FSR.html#Example_2'><img vspace="5" hspace="5" src="images\FSR_01.png" alt="Click here for the graphical output of this example (link to Ro.S.A. website)."> <img vspace="5" hspace="5" src="images\FSR_02.png" alt=""> <img vspace="5" hspace="5" src="images\FSR_03.png" alt=""> <img vspace="5" hspace="5" src="images\FSR_04.png" alt=""> </a></p></div></div></div><p> </p><div class="examples"><h2 id="ExtraExamples" class="bottom_ruled">Related Examples</h2><div id="expandableExamples" class="expandableContent"><p class="switch"><a class="expandAllLink"href="javascript:void(0);">expand all</a></p><div id="Extraexample_1" class="example_module expandableContent"><div id="ExtraExample_1"></div><h3 class="expand"><span><a href="javascript:void(0);" style="display: block;" title="Expand/Collapse"><span class="example_title"><li>FSR with optional arguments.</li></span></a></span></h3><div class="collapse"><p>
      Monitor the exceedances from m=60 without showing plots.<div class="programlisting"><div class="codeinput"><pre class="matlab-code">n=200;
 p=3;
 X=rand(n,p);
@@ -90,12 +87,16 @@ ans =
        Location: 'northeast'
     Orientation: 'vertical'
        FontSize: 9
-       Position: [0.8640 0.8867 0.0340 0.0242]
+       Position: [0.8640 0.8810 0.0340 0.0276]
           Units: 'normalized'
 
   Use GET to show all properties
 
-</pre><a href='http://rosa.unipr.it/fsda/FSR.html#ExtraExample_4'><img vspace="5" hspace="5" src="images\FSR_05.png" alt="Click here for the graphical output of this example (link to Ro.S.A. website)"> <img vspace="5" hspace="5" src="images\FSR_06.png" alt=""> </a></p></div></div><div id="Extraexample_5" class="example_module expandableContent"><div id="ExtraExample_5"></div><h3 class="expand"><span><a href="javascript:void(0);" style="display: block;" title="Expand/Collapse"><span class="example_title"><li>Example of use of options xlim and ylim (Hawkins data).</li></span></a></span></h3><div class="collapse"><p><div class="programlisting"><div class="codeinput"><pre class="matlab-code">load('hawkins.txt','hawkins');
+Warning: No allowed line types or scatterplots found. Nothing done. 
+Warning: No allowed line types or scatterplots found. Nothing done. 
+Warning: No allowed line types or scatterplots found. Nothing done. 
+</pre>
+            <a href='http://rosa.unipr.it/fsda/FSR.html#ExtraExample_4'><img vspace="5" hspace="5" src="images\FSR_05.png" alt="Click here for the graphical output of this example (link to Ro.S.A. website)"> <img vspace="5" hspace="5" src="images\FSR_06.png" alt=""> </a></p></div></div><div id="Extraexample_5" class="example_module expandableContent"><div id="ExtraExample_5"></div><h3 class="expand"><span><a href="javascript:void(0);" style="display: block;" title="Expand/Collapse"><span class="example_title"><li>Example of use of options xlim and ylim (Hawkins data).</li></span></a></span></h3><div class="collapse"><p><div class="programlisting"><div class="codeinput"><pre class="matlab-code">load('hawkins.txt','hawkins');
 y=hawkins(:,9);
 X=hawkins(:,1:8);
 % Use of FSR starting with 1000 subsamples
