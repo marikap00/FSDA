@@ -395,7 +395,7 @@ if isempty(userleg) || (~isempty(userleg) && iscell(userleg))
     nleg = numel(legnew);
 
     for i = 1 : nleg
-        HH = H(:,:,i) ;
+        HH = H(:,:,i);
         set(HH(:),'DisplayName',legnew{i});
     end
     set(gcf,'Name','Scatter plot matrix with groups highlighted');
@@ -492,7 +492,7 @@ if ~isempty(legnew)
         % make the legend entries clickable
         clickableMultiLegend(hLines(sorindlegnew), legnew{:});
     else
-        clickableMultiLegend(hLines, legnew{:})
+        clickableMultiLegend(hLines, legnew{:});
     end
 
 end
