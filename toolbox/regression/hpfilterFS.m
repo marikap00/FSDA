@@ -8,18 +8,18 @@ function out = hpfilterFS(y, varargin)
 %   $Sy=y_{bsb} = Sm + S\epsilon$,        $\epsilon \sim N(0, \sigma_\epsilon^2)$;
 %   $D m = u$,                 $u   \sim N(0, (1/\lambda) I_n)$.
 %
-%   HP ratio: $\lambda=\sigma^2_\epsilon/\sigma^2_u$, 
+%   HP ratio: $\lambda=\sigma^2_\epsilon/\sigma^2_u$,
 %             the greater, the smoother is the trend.
 %
 %
-% Conditioning on observed subset y_bsb = S y, 
+% Conditioning on observed subset y_bsb = S y,
 % using W = S'S (diag 0/1).
 %
 % Posterior mean:
 %   mhat = $\hat m= E(m|y_{bsb})=argmin_m ||S(y-m)||^2 + \lambda ||D m||^2$
 %         = $(W + \lambda D'D) \ (W y)$.
 %
-%   Posterior cov:  
+%   Posterior cov:
 %  $Cov(m|y_{bsb}) = \sigma^2_\epsilon  (W + \lambda D'D)^{-1}$
 %
 %  Required input arguments:
@@ -84,11 +84,11 @@ function out = hpfilterFS(y, varargin)
 %
 % sigma2_eps: method to use to estimate residual variance. String of
 %             scalar numeric value. If sigma2_eps is a string possible
-%             values are: "MLaug" "MAPjef" "MAPig" "dfREML". 
+%             values are: "MLaug" "MAPjef" "MAPig" "dfREML".
 %             Given:
-%             $RSS=||y_{bsb} - S \hat m||^2$. 
+%             $RSS=||y_{bsb} - S \hat m||^2$.
 %             and Qhat:
-%             $\hat Q =RSS + \lambda ||D \hat m||^2$;  
+%             $\hat Q =RSS + \lambda ||D \hat m||^2$;
 %             $K = n_{bsb} + (n-2)$;
 %             $MLaug= ML (augmented) = \hat Q /K$.
 %             MAPjef= MAP (maximum a posteriori estimate) with Jeffreys prior.
@@ -96,14 +96,14 @@ function out = hpfilterFS(y, varargin)
 %             MAPig = MAP (maximum a posteriori
 %               estimate) with inverse gamma prior with parameters a0 and b0.
 %               $MAPig= (b_0 + 0.5\hat Q)/(a_0 + 1 + 0.5K)$.
-%            dfREML = df-REML-like (marginal smoother likelihood). 
+%            dfREML = df-REML-like (marginal smoother likelihood).
 %               $dfREML=RSS / (nbsb - df(lambda))$.
 %               $df(lambda)=trace(H)
 %               = trace(S A^{-1} S') = trace(A^{-1} S' S) = trace(A^{-1} W)$.
 %               The estimate of the $trace(A^{-1} W)$ is via Hutchinson:
 %               $tr(M) ≈ (1/niter) \sum_{i=1}^{niter} z'_i M z_i$.
 %               $z_i$ are Rademacher random. $niter$ is fixed to 50.
-%               variables, equal to +1 or −1 with equal probability. 
+%               variables, equal to +1 or −1 with equal probability.
 %            On the other hand, if sigma2_eps is a numeric scalar it is
 %            possible to supply the prior value.
 %               Example - 'sigma2_eps',20;
@@ -122,12 +122,12 @@ function out = hpfilterFS(y, varargin)
 %               Example - 'ig_a0',10;
 %               Data Types - scalar double.
 %
-%      plots  : plot on the screeen of HP trend estimate. Boolean. 
+%      plots  : plot on the screeen of HP trend estimate. Boolean.
 %               If plots = true a plot with the real time series with fitted
 %               values and trend estimate will appear on
 %               the screen. This plot is tagged forecastTS.
-%               The confidence bands which are shown depend on the input option 
-%               predint. 
+%               The confidence bands which are shown depend on the input option
+%               predint.
 %               The default value of plot is 0, that is no plot is shown on
 %               the screen.
 %               Example - 'plots',true;
@@ -230,6 +230,23 @@ function out = hpfilterFS(y, varargin)
     out = hpfilterFS(y,'bsb',bsb,'predint','all'); 
 %}
 
+%{
+    % Check equality with output of function hpfilter.
+    load Data_SchwertStock
+    TTM = rmmissing(DataTimeTableMth);
+    % Aggregate the monthly data in the timetable to quarterly measurements.
+    TTQ = convert2quarterly(TTM);
+    % Apply the Hodrick-Prescott filter to all variables in the quarterly timetable. The default smoothing parameter value is 1600. Display the last few observed components.
+    TQTT = hpfilter(TTQ);
+    TQTTchk=TQTT;
+    for j=1:size(TQTT,2)
+        outj=hpfilterFS(TTQ{:,j},'plots',0);
+        TQTTchk{:,j}=outj.mhat;
+    end
+    maxdiff=max(abs(TQTT{:,:}-TQTTchk{:,:}),[],"all");
+    assert(maxdiff<1e-10,"output of hpfilterFS different from hpfilter")
+%}
+
 %% Beginning of code
 
 if nargin<1
@@ -269,6 +286,21 @@ if nargin > 1
     predint=options.predint;
 end
 
+if istimetable(y)
+    isTT=true;
+    rowTimes=y.Properties.RowTimes;
+    % Given rowTimes find time series periodicity
+    stent=findTimeSeriesPeriodicity(rowTimes);
+    % Overwrite the value of s with found periodicity
+    if ~isempty(stent)
+        s=stent;
+    end
+    y=y{:,1};
+else
+    y = y(:);
+    isTT=false;
+end
+
 % default value of lambda depending on the sampling frequency. We use
 % Ravn–Uhlig scaling rule (adjust by the 4th power of the observation
 % frequency ratio)
@@ -281,33 +313,33 @@ if isempty(lambda)
 end
 
 
-y = y(:);
-n = length(y);
-seq=(1:n)';
-if n < 3
+
+T = length(y);
+seq=(1:T)';
+if T < 3
     error('FSDA:hpfilterFS:WrongInputOpt','Need n >= 3 for HP second differences.');
 end
 
 if isempty(bsb)
     bsb=seq;
 else
-    % Validate idxObs
+    % Validate bsb
     bsb = bsb(:);
     bsb = unique(bsb);
-    if any(bsb < 1) || any(bsb > n)
+    if any(bsb < 1) || any(bsb > T)
         error('FSDA:hpfilterFS:WrongInputOpt','bsb contains indices outside 1..n.');
     end
 end
 nbsb=length(bsb);
 
 % Selection via diagonal weights: W = S'S (n x n), with 1 on observed entries
-w = zeros(n,1);
+w = zeros(T,1);
 w(bsb) = 1;
-W = spdiags(w, 0, n, n);   % sparse diagonal
+W = spdiags(w, 0, T, T);   % sparse diagonal
 
 % Second-difference matrix D (n-2 x n): each row has [1 -2 1]
-e = ones(n,1);
-D = spdiags([e -2*e e], 0:2, n-2, n);
+e = ones(T,1);
+D = spdiags([e -2*e e], 0:2, T-2, T);
 
 % Solve for posterior mean of trend:
 A = W + lambda*(D'*D);
@@ -325,7 +357,7 @@ Qhat = RSS + lambda * full((D*m_hat)'*(D*m_hat));
 
 % Estimate of sigma^2 (fixed lambda)
 %   1) ML (augmented)         : Qhat / K, K = nObs + (n-2)
-K=nbsb + (n-2);
+K=nbsb + (T-2);
 sigma2_ML   = Qhat / K;
 %   2) MAP (Jeffreys)         : Qhat / (K+2)
 sigma2_Jef  = Qhat / (K + 2);
@@ -417,13 +449,13 @@ if ~isempty(predint)
 
 
     % Predictive variance adds observation noise variance
-    predVar=NaN(n,1);
+    predVar=NaN(T,1);
     predVar(idxMiss) = var_m + sigma2_eps;
 
     % z-quantile
     z = norminv((1+conflev)/2);
 
-    PI_low=NaN(n,1);
+    PI_low=NaN(T,1);
     PI_high=PI_low;
     PI_low(idxMiss)  = full(m_hat(idxMiss)) - z*sqrt(predVar(idxMiss));
     PI_high(idxMiss) = full(m_hat(idxMiss)) + z*sqrt(predVar(idxMiss));
@@ -435,23 +467,26 @@ end
 
 if plots==true
     figure;
+    if isTT ==true
+        seq=rowTimes;
+    end
     plot(seq, y, 'k-');
     hold on;
-    if n<100
+    if T<100
         plot(seq(bsb), y(bsb), 'o');
     end
     plot(seq, m_hat, 'b-', 'LineWidth', 1.5);
     if ~isempty(predint)
         plot(seq, PI_low, 'r--');
         plot(seq, PI_high, 'r--');
-        if n<100
+        if T<100
             legend('y','values of bsb','HP mean (all t)','PI low','PI high');
         else
             legend('y','HP mean (all t)','PI low','PI high');
         end
         title('y, HP-based predictive mean and prediction intervals');
     else
-        if n<100
+        if T<100
             legend('y','values of bsb','HP mean (all t)');
         else
             legend('y','HP mean (all t)');
@@ -459,9 +494,9 @@ if plots==true
         title('HP-based predictive mean');
     end
     legend('AutoUpdate','off','Location','best')
-        grid on;
-    if max(bsb)<n
-            xline(max(bsb)+0.5)
+    grid on;
+    if max(bsb)<T
+        xline(seq(max(bsb))+0.5)
     end
 
 end
@@ -514,35 +549,35 @@ end
 % % Outputs:
 % %   dhat : approx diagonal of inv(A)
 % %   info : diagnostics (mean iters, flags, etc.)
-% 
+%
 % if nargin < 3 || isempty(tol), tol = 1e-8; end
 % if nargin < 4 || isempty(maxit), maxit = 200; end
 % if nargin < 5 || isempty(ichol_opts)
 %     ichol_opts = struct('type','ict','droptol',1e-3);
 % end
-% 
+%
 % n = size(A,1);
 % dhat = zeros(n,1);
-% 
+%
 % % Preconditioner (very important for speed)
 % L = ichol(A, ichol_opts);
-% 
+%
 % flags = zeros(niter,1);
 % relres = zeros(niter,1);
 % iters = zeros(niter,1);
-% 
+%
 % for r = 1:niter
 %     z = sign(randn(n,1));  % Rademacher (+/-1)
 %     [x,flag,rr,it] = pcg(A, z, tol, maxit, L, L');
 %     flags(r) = flag;
 %     relres(r) = rr;
 %     iters(r) = it;
-% 
+%
 %     dhat = dhat + (x .* z);
 % end
-% 
+%
 % dhat = dhat / niter;
-% 
+%
 % info = struct();
 % info.flags = flags;
 % info.relres = relres;
@@ -608,4 +643,55 @@ for startIdx = 1:blockSize:k
 end
 end
 
+function s=findTimeSeriesPeriodicity(rowTimes)
+
+% Compute day differences (numeric)
+dayDiffs = days(diff(rowTimes));
+% Use the modal (most common) rounded day step to be robust
+dayStep = mode(round(dayDiffs));
+
+% If data are sampled daily/weekly, dayStep will be small (<= 28)
+if dayStep <= 28
+    % Classify daily vs weekly (allow small jitter)
+    if abs(dayStep - 1) <= 1        % 0..2 -> daily
+        s = 365;
+    elseif abs(dayStep - 7) <= 2    % 5..9 -> weekly
+        s = 52;
+    else
+        s='';
+    end
+else
+    % Compute month differences between consecutive times:
+    yr = year(rowTimes);
+    mo = month(rowTimes);
+    monthsDiff = (yr(2:end) - yr(1:end-1)) * 12 + (mo(2:end) - mo(1:end-1));
+
+    % Use the modal (most common) month step to be robust to occasional gaps
+    monthStep = mode(monthsDiff);
+
+    % Map month step to s:
+    % 12 months -> yearly       -> s = 1
+    % 6  months -> semiannual   -> s = 2
+    % 4  months -> triannual    -> s = 3
+    % 3  months -> quarterly    -> s = 4
+    % 1  month  -> monthly      -> s = 12
+    switch monthStep
+        case 12
+            s = 1;
+        case 6
+            s = 2;
+        case 4
+            s = 3;
+        case 3
+            s = 4;
+        case 1
+            s = 12;
+        otherwise
+            s = ''; % unknown / not one of the supported frequencies
+    end
+end
+end
+
+
 %FScategory:REG-Regression
+
